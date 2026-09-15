@@ -1,0 +1,20 @@
+[
+  {
+    "id": "client-pme-marrakech",
+    "name": "Directeur Général",
+    "role": "PME industrielle, Marrakech",
+    "quote": "Une équipe réactive qui a modernisé tout notre parc informatique sans interrompre notre activité. Le suivi post-installation a fait toute la différence."
+  },
+  {
+    "id": "client-cabinet-comptable",
+    "name": "Directrice Administrative",
+    "role": "Cabinet comptable, Marrakech",
+    "quote": "Neurovex a su nous proposer une solution de téléphonie IP adaptée à notre budget, avec une installation rapide et un support toujours disponible."
+  },
+  {
+    "id": "client-hotellerie",
+    "name": "Responsable IT",
+    "role": "Groupe hôtelier, Marrakech",
+    "quote": "Proximité, expertise et réactivité : exactement ce que nous cherchions pour la maintenance de nos équipements bureautiques et informatiques."
+  }
+]

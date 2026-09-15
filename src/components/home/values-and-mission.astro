@@ -1,0 +1,54 @@
+---
+const mission = [
+  {
+    title: "Service client",
+    description:
+      "La priorité de nos équipes est de vous offrir un service réactif de qualité.",
+  },
+  {
+    title: "Expertise",
+    description:
+      "Nos experts métiers sont à votre écoute pour vous apporter des solutions sur mesure et adaptées à vos besoins.",
+  },
+  {
+    title: "Proximité",
+    description:
+      "Nos implantations sur la région nous permettent de répondre à toutes vos demandes et garantissent une relation de confiance durable.",
+  },
+];
+
+---
+
+<section id="mission" class="group bg-[#F2F4F7] py-16 font-light">
+  <div class="main mx-auto px-4">
+    <div data-visible-in-the-view="false" class="group">
+      <h2
+        class="mb-8 text-center text-4xl font-bold group-data-[visible-in-the-view=true]:motion-preset-slide-down group-data-[visible-in-the-view=true]:motion-delay-200 md:text-left"
+      >
+        Notre mission
+      </h2>
+      <p
+        class="mb-12 max-w-[800px] text-center text-paragraph-lg font-thin text-neutral-dark-50 group-data-[visible-in-the-view=true]:motion-preset-slide-down group-data-[visible-in-the-view=true]:motion-delay-300 md:text-left"
+      >
+        Accompagner les entreprises de Marrakech dans leur transformation
+        numérique, avec proximité et expertise, dans les domaines de la
+        bureautique, de l'informatique et des télécommunications.
+      </p>
+
+      <div class="mb-4 grid grid-cols-1 gap-8 sm:grid-cols-3">
+        {
+          mission.map(item => (
+            <div class="group-data-[visible-in-the-view=true]:motion-delay-400 group-data-[visible-in-the-view=true]:motion-preset-slide-down">
+              <h4 class="mb-4 text-center text-label-lg font-semibold md:text-left">
+                {item.title}
+              </h4>
+              <p class="text-center text-paragraph-sm text-neutral-dark-50 md:text-left">
+                {item.description}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

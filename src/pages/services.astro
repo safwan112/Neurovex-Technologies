@@ -1,0 +1,130 @@
+---
+import { SITE } from "@/config";
+import Layout from "@/components/layout.astro";
+import Header from "@/components/header.astro";
+import Process from "@/components/about/process.astro";
+import { ButtonLink } from "@/components/button";
+import { Icon } from "astro-icon/components";
+
+const services = [
+  {
+    id: "informatique",
+    icon: "server",
+    title: "Solutions Informatique",
+    color: "#2FAEEA",
+    description:
+      "Postes de travail, serveurs, infrastructures réseau et sécurité : nous concevons et maintenons un parc informatique fiable et évolutif pour votre entreprise.",
+    features: [
+      "Fourniture et installation de postes de travail et serveurs",
+      "Mise en place et sécurisation de réseaux d'entreprise",
+      "Sauvegarde et protection des données",
+      "Audit et conseil en infrastructure IT",
+    ],
+  },
+  {
+    id: "bureautique",
+    icon: "printer",
+    title: "Bureautique & Équipement",
+    color: "#6260E8",
+    description:
+      "Imprimantes, copieurs et mobilier de bureau technologique : des équipements adaptés à votre activité, livrés et installés avec un service de proximité.",
+    features: [
+      "Vente et location d'imprimantes et copieurs",
+      "Contrats de consommables et de suivi",
+      "Équipement de salles de réunion",
+      "Installation et mise en service sur site",
+    ],
+  },
+  {
+    id: "telecommunications",
+    icon: "signal",
+    title: "Télécommunications",
+    color: "#292D33",
+    description:
+      "Téléphonie IP, connectivité et infrastructure réseau : nous déployons des solutions de communication performantes et évolutives pour vos équipes.",
+    features: [
+      "Téléphonie IP et standards téléphoniques",
+      "Connectivité et liaisons internet professionnelles",
+      "Câblage et infrastructure réseau",
+      "Solutions de visioconférence",
+    ],
+  },
+  {
+    id: "support",
+    icon: "wrench",
+    title: "Support & Maintenance",
+    color: "#1090C7",
+    description:
+      "Une assistance technique réactive et des contrats de service sur mesure, pour garantir la continuité de votre activité à tout moment.",
+    features: [
+      "Assistance technique réactive",
+      "Contrats de maintenance préventive",
+      "Intervention sur site ou à distance",
+      "Suivi et reporting régulier",
+    ],
+  },
+];
+---
+
+<Layout title={`Services | ${SITE.title}`} description="Solutions informatique, bureautique et télécommunications pour les entreprises de Marrakech.">
+  <section class="relative overflow-hidden bg-[#DCEFFB]">
+    <Header />
+    <div class="main relative z-10 mx-auto pb-16 pt-2 md:pb-24 md:pt-16">
+      <h1 class="max-w-2xl text-center font-sans text-3xl font-extrabold md:text-left md:text-title">
+        Nos services
+      </h1>
+      <p class="text-md my-4 max-w-[600px] text-center font-sans font-thin md:my-8 md:text-left md:text-label-sm">
+        Un point de convergence entre bureautique, informatique et
+        télécommunications, pour accompagner votre entreprise à chaque étape.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-16">
+    <div class="main mx-auto space-y-16 px-4">
+      {
+        services.map(service => (
+          <div id={service.id} class="scroll-mt-24 border-b border-neutral-light-0 pb-16 last:border-0">
+            <div class="flex flex-col gap-8 md:flex-row md:items-start">
+              <div
+                class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl"
+                style={`background-color: color-mix(in srgb, ${service.color} 12%, white)`}
+              >
+                <Icon name={service.icon} class="h-8 w-8" style={`color: ${service.color}`} />
+              </div>
+              <div class="flex-1">
+                <h2 class="text-heading-sm font-bold">{service.title}</h2>
+                <p class="mt-3 max-w-2xl text-paragraph-lg text-neutral-dark-50">
+                  {service.description}
+                </p>
+                <ul class="mt-6 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
+                  {service.features.map(feature => (
+                    <li class="flex items-start gap-2 text-paragraph-sm text-neutral-dark-30">
+                      <Icon name="chev-right" class="mt-1 h-3 w-3 shrink-0 text-blue-50" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <Process />
+
+  <section class="py-16">
+    <div class="main mx-auto flex flex-col items-center gap-4 px-4 text-center">
+      <h2 class="text-heading-sm font-bold">Un projet en tête ?</h2>
+      <p class="max-w-xl text-paragraph-lg text-neutral-dark-50">
+        Parlons de vos besoins et construisons ensemble la solution adaptée à
+        votre entreprise.
+      </p>
+      <ButtonLink href="/contact" className="mt-2">
+        Demander un devis <Icon name="arrow-right" class="ml-2 h-4 w-4" />
+      </ButtonLink>
+    </div>
+  </section>
+</Layout>
