@@ -33,8 +33,17 @@ export const COMPANY = {
   email: "contact@neurovex.com",
 };
 
-// No social profiles were provided for Neurovex yet — add them here once
-// available (e.g. linkedin: { href: "...", linkTitle: "...", active: true }).
-export const SOCIALS: SocialObjects = {};
+export const SOCIALS: SocialObjects = {
+  facebook: {
+    href: "https://www.facebook.com/profile.php?id=61593997156410",
+    linkTitle: "Neurovex sur Facebook",
+    active: true,
+  },
+  linkedin: {
+    href: "https://www.linkedin.com/company/neurovex-technologies/",
+    linkTitle: "Neurovex sur LinkedIn",
+    active: true,
+  },
+};
 
 export const FORMS_SUBMISSIONS: FormsSubmissions[] = [];
