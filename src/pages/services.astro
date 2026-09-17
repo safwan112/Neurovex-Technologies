@@ -9,7 +9,7 @@ import { Icon } from "astro-icon/components";
 const services = [
   {
     id: "informatique",
-    icon: "server",
+    video: "/videos/services/informatique.mp4",
     title: "Solutions Informatique",
     color: "#2FAEEA",
     description:
@@ -23,7 +23,7 @@ const services = [
   },
   {
     id: "bureautique",
-    icon: "printer",
+    video: "/videos/services/bureautique.mp4",
     title: "Bureautique & Équipement",
     color: "#6260E8",
     description:
@@ -37,7 +37,7 @@ const services = [
   },
   {
     id: "telecommunications",
-    icon: "signal",
+    video: "/videos/services/telecommunications.mp4",
     title: "Télécommunications",
     color: "#292D33",
     description:
@@ -51,7 +51,7 @@ const services = [
   },
   {
     id: "support",
-    icon: "wrench",
+    video: "/videos/services/support.mp4",
     title: "Support & Maintenance",
     color: "#1090C7",
     description:
@@ -70,10 +70,10 @@ const services = [
   <section class="relative overflow-hidden bg-[#DCEFFB]">
     <Header />
     <div class="main relative z-10 mx-auto pb-16 pt-2 md:pb-24 md:pt-16">
-      <h1 class="max-w-2xl text-center font-sans text-3xl font-extrabold md:text-left md:text-title">
+      <h1 class="motion-preset-slide-down max-w-2xl text-center font-sans text-3xl font-extrabold motion-delay-[100ms] md:text-left md:text-title">
         Nos services
       </h1>
-      <p class="text-md my-4 max-w-[600px] text-center font-sans font-thin md:my-8 md:text-left md:text-label-sm">
+      <p class="text-md motion-preset-slide-down my-4 max-w-[600px] text-center font-sans font-thin motion-delay-[200ms] motion-ease-spring-smooth md:my-8 md:text-left md:text-label-sm">
         Un point de convergence entre bureautique, informatique et
         télécommunications, pour accompagner votre entreprise à chaque étape.
       </p>
@@ -84,13 +84,33 @@ const services = [
     <div class="main mx-auto space-y-16 px-4">
       {
         services.map(service => (
-          <div id={service.id} class="scroll-mt-24 border-b border-neutral-light-0 pb-16 last:border-0">
+          <div
+            id={service.id}
+            data-visible-in-the-view="false"
+            class="scroll-mt-24 border-b border-neutral-light-0 pb-16 last:border-0 data-[visible-in-the-view=true]:motion-preset-slide-up data-[visible-in-the-view=true]:motion-delay-[100ms]"
+          >
             <div class="flex flex-col gap-8 md:flex-row md:items-start">
               <div
-                class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl"
-                style={`background-color: color-mix(in srgb, ${service.color} 12%, white)`}
+                class={`mx-auto flex shrink-0 items-center justify-center overflow-hidden rounded-xl md:mx-0 ${
+                  service.id === "bureautique"
+                    ? "h-56 w-56 md:h-48 md:w-48"
+                    : "h-48 w-48 md:h-40 md:w-40"
+                }`}
+                style={
+                  service.id === "bureautique"
+                    ? undefined
+                    : `background-color: color-mix(in srgb, ${service.color} 12%, white)`
+                }
               >
-                <Icon name={service.icon} class="h-8 w-8" style={`color: ${service.color}`} />
+                <video
+                  src={service.video}
+                  class="h-full w-full object-contain"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  preload="auto"
+                />
               </div>
               <div class="flex-1">
                 <h2 class="text-heading-sm font-bold">{service.title}</h2>
@@ -116,13 +136,21 @@ const services = [
   <Process />
 
   <section class="py-16">
-    <div class="main mx-auto flex flex-col items-center gap-4 px-4 text-center">
-      <h2 class="text-heading-sm font-bold">Un projet en tête ?</h2>
-      <p class="max-w-xl text-paragraph-lg text-neutral-dark-50">
+    <div
+      data-visible-in-the-view="false"
+      class="group main mx-auto flex flex-col items-center gap-4 px-4 text-center"
+    >
+      <h2 class="text-heading-sm font-bold group-data-[visible-in-the-view=true]:motion-preset-slide-up">
+        Un projet en tête ?
+      </h2>
+      <p class="max-w-xl text-paragraph-lg text-neutral-dark-50 group-data-[visible-in-the-view=true]:motion-preset-slide-up group-data-[visible-in-the-view=true]:motion-delay-[100ms]">
         Parlons de vos besoins et construisons ensemble la solution adaptée à
         votre entreprise.
       </p>
-      <ButtonLink href="/contact" className="mt-2">
+      <ButtonLink
+        href="/contact"
+        className="mt-2 group-data-[visible-in-the-view=true]:motion-preset-slide-up group-data-[visible-in-the-view=true]:motion-delay-[200ms]"
+      >
         Demander un devis <Icon name="arrow-right" class="ml-2 h-4 w-4" />
       </ButtonLink>
     </div>

@@ -6,6 +6,7 @@ export interface ProjectType {
   title: string;
   description: string;
   riveAnimation?: string;
+  video?: string;
   icon?: string;
   badge?: string;
   links: {
@@ -44,6 +45,18 @@ const { project } = Astro.props as Props;
           width={350}
           height={350}
         />
+      ) : project.video ? (
+        <div class="mx-auto flex h-64 w-full max-w-md items-center justify-center overflow-hidden rounded-xl md:h-80">
+          <video
+            src={project.video}
+            class="h-full w-full object-contain"
+            autoplay
+            loop
+            muted
+            playsinline
+            preload="auto"
+          />
+        </div>
       ) : (
         project.icon && (
           <div
