@@ -3,6 +3,7 @@ import { SITE } from "@/config";
 import Footer from "./footer.astro";
 import { AstroSeo } from "@astrolib/seo";
 import PostHog from "./posthog.astro";
+import { useTranslations } from "@/i18n/utils";
 import "@/global.css";
 
 const ENEABLE_ANALYTICS = !import.meta.env.DEV;
@@ -14,10 +15,13 @@ export interface Props {
   ogImage?: string;
 }
 
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+
 const {
   title = SITE.title,
   author = SITE.author,
-  description = SITE.desc,
+  description = t("meta.description"),
   ogImage = SITE.ogImage,
 } = Astro.props;
 
@@ -30,7 +34,7 @@ const socialImageURL = new URL(
 ---
 
 <!doctype html>
-<html lang="fr">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />

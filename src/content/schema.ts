@@ -51,6 +51,7 @@ export const blogSchema = (ctx: SchemaContext) =>
       pubDatetime: z.date(),
       title: z.string(),
       slug: z.string().optional(),
+      lang: z.enum(["fr", "en"]).default("fr"),
       featured: z.boolean().optional(),
       draft: z.boolean().optional(),
       tags: z.array(z.string()).default(["others"]),
@@ -94,6 +95,7 @@ export const testimonialSchema = (ctx: SchemaContext) =>
   z.object({
     name: z.string(),
     role: z.string(),
+    lang: z.enum(["fr", "en"]).default("fr"),
     avatar: ctx.image().optional(),
     quote: z.string().optional(),
     video: z.string().url().optional(),

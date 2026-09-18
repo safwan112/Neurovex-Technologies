@@ -1,39 +1,18 @@
 ---
-const steps = [
-  {
-    number: "01",
-    title: "Découverte",
-    description:
-      "Analyse approfondie de vos besoins, objectifs et contraintes pour construire une feuille de route claire.",
-  },
-  {
-    number: "02",
-    title: "Conception",
-    description:
-      "Design de la solution technique, architecture système et planification détaillée du projet.",
-  },
-  {
-    number: "03",
-    title: "Développement",
-    description:
-      "Réalisation avec des méthodologies agiles, tests continus et points de suivi réguliers.",
-  },
-  {
-    number: "04",
-    title: "Livraison",
-    description:
-      "Déploiement, formation des équipes et support post-livraison pour assurer votre succès.",
-  },
-];
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+const steps = t("process.steps");
 ---
 
 <section id="process" class="bg-neutral-dark-20 py-16">
   <div class="main mx-auto">
     <h2 class="mb-2 text-center text-heading-sm text-neutral-light-50 md:text-left">
-      Comment nous travaillons
+      {t("process.heading")}
     </h2>
     <p class="mb-10 text-center text-paragraph-sm text-neutral-light-0 md:text-left">
-      Notre processus
+      {t("process.subtitle")}
     </p>
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {

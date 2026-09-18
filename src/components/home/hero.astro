@@ -2,6 +2,11 @@
 import { ButtonLink } from "../button";
 import Header from "../header.astro";
 import { Icon } from "astro-icon/components";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
 ---
 
 <section class="relative overflow-hidden bg-[#DCEFFB]">
@@ -15,48 +20,46 @@ import { Icon } from "astro-icon/components";
         <h1
           class="motion-preset-slide-down mt-4 block w-full max-w-screen-lg text-center font-sans text-3xl font-extrabold motion-delay-[100ms] md:hidden md:text-left md:text-title"
         >
-          Votre partenaire technologique à Marrakech
+          {t("hero.title.mobile")}
         </h1>
 
         <div
           class="hidden w-full max-w-screen-lg text-center font-sans text-heading-lg font-bold md:block md:text-left md:text-title"
         >
           <p class="m-preset-typewriter-[22] motion-loop-once">
-            Votre partenaire
+            {t("hero.title.line1")}
           </p>
           <p
             class="m-preset-typewriter-[22] motion-delay-[500ms] motion-loop-once"
           >
-            technologique à Marrakech
+            {t("hero.title.line2")}
           </p>
           <p
             class="m-preset-typewriter-[18] motion-delay-[1000ms] motion-loop-once"
           >
-            proximité, expertise, confiance
+            {t("hero.title.line3")}
           </p>
         </div>
         <p
           class="text-md motion-preset-slide-down my-4 max-w-[600px] text-center font-sans font-thin motion-delay-[200ms] motion-ease-spring-smooth md:my-8 md:text-left md:text-label-sm md:motion-delay-[1200ms]"
         >
-          Neurovex accompagne les entreprises dans leur transformation
-          numérique : bureautique, informatique et télécommunications, avec
-          un service réactif et des solutions sur mesure.
+          {t("hero.description")}
         </p>
         <div
           class="hidden justify-center space-x-4 py-4 md:flex md:flex-row md:justify-start"
         >
           <ButtonLink
-            href="/services"
+            href={getRelativeLocaleUrl(lang, "/services")}
             className="motion-preset-slide-down hidden motion-delay-[1600ms] motion-ease-spring-smooth md:flex"
           >
-            Découvrir nos services <Icon name="arrow-right" class="ml-2 rotate-45" />
+            {t("hero.cta.services")} <Icon name="arrow-right" class="ml-2 rotate-45" />
           </ButtonLink>
           <ButtonLink
             variant="outline"
-            href="/contact"
+            href={getRelativeLocaleUrl(lang, "/contact")}
             className="motion-preset-slide-down hidden self-center motion-delay-[1800ms] motion-ease-spring-smooth md:flex"
           >
-            Nous contacter <Icon name="arrow-right" class="ml-2" />
+            {t("hero.cta.contact")} <Icon name="arrow-right" class="ml-2" />
           </ButtonLink>
         </div>
       </div>

@@ -16,5 +16,26 @@
     "name": "Responsable IT",
     "role": "Groupe hôtelier, Marrakech",
     "quote": "Proximité, expertise et réactivité : exactement ce que nous cherchions pour la maintenance de nos équipements bureautiques et informatiques."
+  },
+  {
+    "id": "client-pme-marrakech-en",
+    "name": "General Manager",
+    "role": "Industrial SME, Marrakech",
+    "lang": "en",
+    "quote": "A responsive team that modernized our entire IT infrastructure without disrupting our operations. The post-installation follow-up made all the difference."
+  },
+  {
+    "id": "client-cabinet-comptable-en",
+    "name": "Administrative Director",
+    "role": "Accounting firm, Marrakech",
+    "lang": "en",
+    "quote": "Neurovex was able to offer us an IP telephony solution suited to our budget, with a fast installation and support that's always available."
+  },
+  {
+    "id": "client-hotellerie-en",
+    "name": "IT Manager",
+    "role": "Hotel group, Marrakech",
+    "lang": "en",
+    "quote": "Proximity, expertise and responsiveness: exactly what we were looking for to maintain our office and IT equipment."
   }
 ]

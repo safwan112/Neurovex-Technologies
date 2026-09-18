@@ -21,7 +21,16 @@ const podcast = defineCollection({
 });
 
 const blog = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.md", base: "articles" }),
+  // fr/en translations of an article share the same frontmatter `slug`
+  // (needed so the language switcher can pair them up); the default glob
+  // loader uses `data.slug` as the entry id when present, which would make
+  // one translation silently overwrite the other in the content store. Fall
+  // back to a path-based id instead so both files are kept.
+  loader: glob({
+    pattern: "**/[^_]*.md",
+    base: "articles",
+    generateId: ({ entry }) => entry.replace(/\.md$/, ""),
+  }),
   schema: arg => blogSchema(arg),
 });
 

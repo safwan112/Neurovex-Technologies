@@ -2,17 +2,21 @@
 import { Icon } from "astro-icon/components";
 import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
-import { getSortedArticles } from "@/lib/utils";
+import { getArticlesByLocale } from "@/lib/utils";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { useTranslations } from "@/i18n/utils";
 
 export interface Props {
   article: CollectionEntry<"blog">;
 }
 
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
 const { article } = Astro.props;
 
-// Get all articles and find current article index
+// Get all articles (same locale as the current one) and find current article index
 const articles = await getCollection("blog");
-const sortedArticles = getSortedArticles(articles);
+const sortedArticles = getArticlesByLocale(articles, article.data.lang);
 const currentIndex = sortedArticles.findIndex(a => a.id === article.id);
 
 // Get next and previous articles
@@ -28,12 +32,12 @@ const nextArticle = currentIndex > 0 ? sortedArticles[currentIndex - 1] : null;
     {
       previousArticle && (
         <a
-          href={`/blog/${previousArticle.data.slug}`}
+          href={getRelativeLocaleUrl(lang, `/blog/${previousArticle.data.slug}`)}
           class="group flex max-w-[45%] flex-col items-start gap-2 hover:text-neutral-dark-50"
         >
           <div class="flex items-center gap-2 text-sm text-neutral-dark-50">
             <Icon name="arrow-left" class="h-4 w-4" />
-            <span>Previous Article</span>
+            <span>{t("blog.previousArticle")}</span>
           </div>
           <span class="line-clamp-2 text-base font-medium">
             {previousArticle.data.title}
@@ -45,11 +49,11 @@ const nextArticle = currentIndex > 0 ? sortedArticles[currentIndex - 1] : null;
     {
       nextArticle && (
         <a
-          href={`/blog/${nextArticle.data.slug}`}
+          href={getRelativeLocaleUrl(lang, `/blog/${nextArticle.data.slug}`)}
           class="group ml-auto flex max-w-[45%] flex-col items-end gap-2 text-right hover:text-neutral-dark-50"
         >
           <div class="flex items-center gap-2 text-sm text-neutral-dark-50">
-            <span>Next Article</span>
+            <span>{t("blog.nextArticle")}</span>
             <Icon name="arrow-right" class="h-4 w-4" />
           </div>
           <span class="line-clamp-2 text-base font-medium">

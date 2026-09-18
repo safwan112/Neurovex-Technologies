@@ -14,7 +14,7 @@ export interface Props {
 export async function getStaticPaths() {
   const articles = await getCollection(
     "blog",
-    ({ data }) => !data.draft && data.lang === "fr"
+    ({ data }) => !data.draft && data.lang === "en"
   );
   const articlePaths = articles.map(article => ({
     params: { slug: article.data.slug },
@@ -33,7 +33,7 @@ const { article } = Astro.props;
 
 const articles = await getCollection("blog");
 
-const sortedArticles = getArticlesByLocale(articles, "fr");
+const sortedArticles = getArticlesByLocale(articles, "en");
 
 const totalPages = getPageNumbers(sortedArticles.length);
 

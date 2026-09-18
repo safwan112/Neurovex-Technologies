@@ -1,5 +1,9 @@
 ---
 import { Icon } from "astro-icon/components";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
 ---
 
 <section id="our-story" class="bg-neutral-light-30">
@@ -10,30 +14,22 @@ import { Icon } from "astro-icon/components";
       <h2
         class="mb-4 text-center text-heading-lg font-bold text-neutral-dark-10 sm:text-left"
       >
-        Qui sommes-nous ?
+        {t("about.title")}
       </h2>
       <a
         href="#process"
         class="flex items-center gap-2 text-label-sm font-bold text-neutral-dark-10 hover:text-neutral-dark-20"
       >
-        Notre processus
+        {t("about.processLink")}
         <Icon name="arrow-down-right" class="h-5 w-5" />
       </a>
     </div>
 
     <div class="max-w-3xl pb-20">
       <p class="text-paragraph-md text-neutral-dark-20 2xl:text-paragraph-lg">
-        À Marrakech, chez Neurovex, nos techniciens et conseillers experts
-        représentent notre plus grande force. En tant que point de
-        convergence des domaines de la bureautique, de l'informatique et des
-        télécommunications, nos équipes techniques et commerciales
-        bénéficient d'une formation continue sur les derniers matériels et
-        logiciels.
+        {t("about.description")}
         <br /><br />
-        Cette exigence constante est dédiée à améliorer les services que
-        nous offrons aux utilisateurs de votre entreprise. La proximité
-        humaine est au cœur de notre engagement pour répondre aux besoins
-        spécifiques de nos clients.
+        {t("about.description2")}
       </p>
     </div>
   </div>

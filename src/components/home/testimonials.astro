@@ -3,8 +3,15 @@ import { getCollection } from "astro:content";
 import VideoTestimonial from "./video-testimonial.astro";
 import { Icon as AstroIcon } from "astro-icon/components";
 import { Image } from "astro:assets";
+import { useTranslations } from "@/i18n/utils";
 
-const testimonials = await getCollection("testimonials");
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+
+const testimonials = await getCollection(
+  "testimonials",
+  ({ data }) => data.lang === lang
+);
 
 const testimonialsData = testimonials.map(testimonial => testimonial.data);
 const testimonialsVideos = testimonialsData.filter(
@@ -17,7 +24,7 @@ const testimonialsQuotes = testimonialsData.filter(
 
 <section class="py-16">
   <div class="main mx-auto px-4">
-    <h2 class="mb-12 text-3xl font-bold">Témoignages</h2>
+    <h2 class="mb-12 text-3xl font-bold">{t("testimonials.heading")}</h2>
     <div class="relative">
       <button
         id="scroll-left"

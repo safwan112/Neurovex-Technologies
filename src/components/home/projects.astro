@@ -2,51 +2,31 @@
 import type { ProjectType } from "./project-item.astro";
 import ProjectItem from "./project-item.astro";
 import RiveAnimationScript from "@/components/rive-animation-script.astro";
-const services: ProjectType[] = [
-  {
-    title: "Solutions Informatique",
-    description:
-      "Postes de travail, serveurs, infrastructures réseau et sécurité : nous concevons et maintenons un parc informatique fiable et évolutif pour votre entreprise.",
-    video: "/videos/services/informatique.mp4",
-    links: [{ text: "En savoir plus", url: "/services#informatique" }],
-    color: "#2FAEEA",
-  },
-  {
-    title: "Bureautique & Équipement",
-    description:
-      "Imprimantes, copieurs et mobilier de bureau technologique : des équipements adaptés à votre activité, livrés et installés avec un service de proximité.",
-    video: "/videos/services/bureautique.mp4",
-    links: [{ text: "En savoir plus", url: "/services#bureautique" }],
-    color: "#6260E8",
-  },
-  {
-    title: "Télécommunications",
-    description:
-      "Téléphonie IP, connectivité et infrastructure réseau : nous déployons des solutions de communication performantes et évolutives pour vos équipes.",
-    video: "/videos/services/telecommunications.mp4",
-    links: [{ text: "En savoir plus", url: "/services#telecommunications" }],
-    color: "#292D33",
-  },
-  {
-    title: "Support & Maintenance",
-    description:
-      "Une assistance technique réactive et des contrats de service sur mesure, pour garantir la continuité de votre activité à tout moment.",
-    video: "/videos/services/support.mp4",
-    links: [{ text: "En savoir plus", url: "/services#support" }],
-    color: "#1090C7",
-  },
-];
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+const servicesHref = getRelativeLocaleUrl(lang, "/services");
+
+const services: ProjectType[] = t("services.items").map(service => ({
+  title: service.title,
+  description: service.description,
+  video: service.video,
+  links: [{ text: t("services.learnMore"), url: `${servicesHref}#${service.id}` }],
+  color: service.color,
+}));
 ---
 
 <section class="py-16" id="services">
   <div class="main mx-auto px-4">
     <div class="mb-8 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-      <h2 class="text-heading-sm font-bold">Nos services</h2>
+      <h2 class="text-heading-sm font-bold">{t("services.heading")}</h2>
       <a
-        href="/services"
+        href={servicesHref}
         class="flex items-center gap-1 text-label-sm font-bold text-neutral-dark-10 hover:text-neutral-dark-20"
       >
-        Voir tous nos services →
+        {t("services.seeAll")}
       </a>
     </div>
     <div class="grid grid-cols-1 gap-2 md:grid-cols-2">

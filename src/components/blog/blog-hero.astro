@@ -2,20 +2,24 @@
 import Card from "./blog-card.astro";
 import type { CollectionEntry } from "astro:content";
 import getReadingTime from "reading-time";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { useTranslations } from "@/i18n/utils";
 
 export interface Props {
   latestArticle: CollectionEntry<"blog">;
   featuredArticles: CollectionEntry<"blog">[];
 }
 
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
 const { latestArticle } = Astro.props;
 ---
 
 <div class="main mx-auto">
-  <h1 class="py-8 text-5xl font-bold">Blogs</h1>
+  <h1 class="py-8 text-5xl font-bold">{t("blog.title")}</h1>
   <div class="">
     <Card
-      href={`/blog/${latestArticle.data.slug}`}
+      href={getRelativeLocaleUrl(lang, `/blog/${latestArticle.data.slug}`)}
       withCover
       frontmatter={latestArticle.data}
       minutesRead={getReadingTime(latestArticle?.body ?? "").text}

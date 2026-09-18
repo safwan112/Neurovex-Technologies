@@ -109,6 +109,13 @@ const redirects = getAstroRedirects();
 export default defineConfig({
   site: SITE.website,
   output: "static",
+  i18n: {
+    defaultLocale: "fr",
+    locales: ["fr", "en"],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
   adapter: cloudflare({
     platformProxy: {
       enabled: true,

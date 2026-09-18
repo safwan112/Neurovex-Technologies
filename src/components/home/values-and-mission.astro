@@ -1,22 +1,9 @@
 ---
-const mission = [
-  {
-    title: "Service client",
-    description:
-      "La priorité de nos équipes est de vous offrir un service réactif de qualité.",
-  },
-  {
-    title: "Expertise",
-    description:
-      "Nos experts métiers sont à votre écoute pour vous apporter des solutions sur mesure et adaptées à vos besoins.",
-  },
-  {
-    title: "Proximité",
-    description:
-      "Nos implantations sur la région nous permettent de répondre à toutes vos demandes et garantissent une relation de confiance durable.",
-  },
-];
+import { useTranslations } from "@/i18n/utils";
 
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+const mission = t("mission.items");
 ---
 
 <section id="mission" class="group bg-[#F2F4F7] py-16 font-light">
@@ -25,14 +12,12 @@ const mission = [
       <h2
         class="mb-8 text-center text-4xl font-bold group-data-[visible-in-the-view=true]:motion-preset-slide-down group-data-[visible-in-the-view=true]:motion-delay-200 md:text-left"
       >
-        Notre mission
+        {t("mission.title")}
       </h2>
       <p
         class="mb-12 max-w-[800px] text-center text-paragraph-lg font-thin text-neutral-dark-50 group-data-[visible-in-the-view=true]:motion-preset-slide-down group-data-[visible-in-the-view=true]:motion-delay-300 md:text-left"
       >
-        Accompagner les entreprises de Marrakech dans leur transformation
-        numérique, avec proximité et expertise, dans les domaines de la
-        bureautique, de l'informatique et des télécommunications.
+        {t("mission.description")}
       </p>
 
       <div class="mb-4 grid grid-cols-1 gap-8 sm:grid-cols-3">

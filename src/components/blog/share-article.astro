@@ -1,6 +1,8 @@
 ---
 import { Icon } from "astro-icon/components";
+import { useTranslations } from "@/i18n/utils";
 
+const t = useTranslations(Astro.currentLocale);
 const articleUrl = encodeURIComponent(Astro.url.href);
 
 const socialMediaIcons = [
@@ -20,7 +22,7 @@ const socialMediaIcons = [
 <div
   class="mx-auto flex max-w-3xl items-center justify-end gap-4 border-b border-b-slate-300 pb-2 pt-8"
 >
-  <span>Share article:</span>
+  <span>{t("blog.shareArticle")}</span>
   {
     socialMediaIcons.map(({ name, url }) => (
       <a href={url} target="_blank" rel="noopener noreferrer" class="group">

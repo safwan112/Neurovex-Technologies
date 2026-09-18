@@ -5,6 +5,7 @@ import type { CollectionEntry } from "astro:content";
 
 import { ButtonLink } from "@/components/button";
 import BlogCardHomePage from "./blog-card-home-page.astro";
+import { getRelativeLocaleUrl } from "astro:i18n";
 
 export interface Props {
   pageNum: number;
@@ -12,6 +13,7 @@ export interface Props {
   articles: CollectionEntry<"blog">[];
 }
 
+const lang = Astro.currentLocale ?? "fr";
 const { pageNum, totalPages, articles } = Astro.props;
 
 const prev = pageNum > 1 ? "" : "disabled";
@@ -27,7 +29,7 @@ const next = pageNum < totalPages ? "" : "disabled";
       articles.map(article => (
         <BlogCardHomePage
           frontmatter={article.data}
-          href={`/blog/${article.data.slug}`}
+          href={getRelativeLocaleUrl(lang, `/blog/${article.data.slug}`)}
         />
       ))
     }
@@ -37,7 +39,10 @@ const next = pageNum < totalPages ? "" : "disabled";
       <nav class="mb-8 mt-auto flex justify-center" aria-label="Pagination">
         <ButtonLink
           disabled={prev === "disabled"}
-          href={`/blog/${pageNum - 1 !== 1 ? "/" + (pageNum - 1) : ""}`}
+          href={getRelativeLocaleUrl(
+            lang,
+            `/blog/${pageNum - 1 !== 1 ? "/" + (pageNum - 1) : ""}`
+          )}
           className={`mr-4 select-none ${prev}`}
           ariaLabel="Previous"
           variant="ghost"
@@ -46,7 +51,7 @@ const next = pageNum < totalPages ? "" : "disabled";
         </ButtonLink>
         <ButtonLink
           disabled={next === "disabled"}
-          href={`/blog/${pageNum + 1}`}
+          href={getRelativeLocaleUrl(lang, `/blog/${pageNum + 1}`)}
           className={`ml-4 select-none ${next}`}
           ariaLabel="Next"
           variant="ghost"

@@ -3,19 +3,42 @@ import { Icon } from "astro-icon/components";
 import HeaderLink from "./header-link.astro";
 import { Image } from "astro:assets";
 import LogoMark from "@/assets/brand/logo-mark.png";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import {
+  useTranslations,
+  getOtherLocale,
+  getAlternateLocaleHref,
+} from "@/i18n/utils";
+
+const lang = Astro.currentLocale;
+const t = useTranslations(lang);
+const otherLocale = getOtherLocale(lang);
+const langSwitchHref = getAlternateLocaleHref(Astro.url.pathname, otherLocale);
 
 const navItems = [
-  { label: "Accueil", href: "/" },
-  { label: "Services", href: "/services" },
-  { label: "Blog", href: "/blog" },
-  { label: "À propos", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { label: t("nav.home"), href: getRelativeLocaleUrl(lang ?? "fr", "/") },
+  {
+    label: t("nav.services"),
+    href: getRelativeLocaleUrl(lang ?? "fr", "/services"),
+  },
+  { label: t("nav.blog"), href: getRelativeLocaleUrl(lang ?? "fr", "/blog") },
+  {
+    label: t("nav.about"),
+    href: getRelativeLocaleUrl(lang ?? "fr", "/about"),
+  },
+  {
+    label: t("nav.contact"),
+    href: getRelativeLocaleUrl(lang ?? "fr", "/contact"),
+  },
 ];
 ---
 
 <header class="relative z-[99] w-full bg-transparent py-2 pt-3 md:py-8 md:pt-8">
   <div class="main flex items-center justify-between">
-    <a href="/" class="z-10" aria-label="Neurovex Technologies">
+    <a
+      href={getRelativeLocaleUrl(lang ?? "fr", "/")}
+      class="z-10"
+      aria-label="Neurovex Technologies">
       <div
         class="flex cursor-pointer items-center gap-2 whitespace-nowrap font-sans text-2xl font-black"
       >
@@ -71,6 +94,14 @@ const navItems = [
               </li>
             ))
           }
+          <li>
+            <a
+              href={langSwitchHref}
+              class="rounded-md border border-neutral-dark-10 px-3 py-1 text-label-sm font-bold text-neutral-dark-10"
+            >
+              {t("nav.langSwitch")}
+            </a>
+          </li>
         </ul>
       </nav>
     </div>
@@ -89,7 +120,13 @@ const navItems = [
           ))
         }
       </ul>
-      <div></div>
+      <a
+        href={langSwitchHref}
+        class="rounded-md border border-neutral-dark-10 px-2.5 py-1 text-label-sm font-bold text-neutral-dark-10 hover:bg-neutral-dark-10 hover:text-white"
+        aria-label="Switch language"
+      >
+        {t("nav.langSwitch")}
+      </a>
     </nav>
   </div>
 </header>
