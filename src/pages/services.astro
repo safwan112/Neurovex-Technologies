@@ -1,0 +1,103 @@
+---
+import { SITE } from "@/config";
+import Layout from "@/components/layout.astro";
+import Header from "@/components/header.astro";
+import Process from "@/components/about/process.astro";
+import { ButtonLink } from "@/components/button";
+import { Icon } from "astro-icon/components";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+const services = t("services.items");
+---
+
+<Layout title={`Services | ${SITE.title}`} description={t("services.meta.description")}>
+  <section class="relative overflow-hidden bg-[#DCEFFB]">
+    <Header />
+    <div class="main relative z-10 mx-auto pb-16 pt-2 md:pb-24 md:pt-16">
+      <h1 class="motion-preset-slide-down max-w-2xl text-center font-sans text-3xl font-extrabold motion-delay-[100ms] md:text-left md:text-title">
+        {t("services.heading")}
+      </h1>
+      <p class="text-md motion-preset-slide-down my-4 max-w-[600px] text-center font-sans font-thin motion-delay-[200ms] motion-ease-spring-smooth md:my-8 md:text-left md:text-label-sm">
+        {t("services.subtitle")}
+      </p>
+    </div>
+  </section>
+
+  <section class="py-16">
+    <div class="main mx-auto space-y-16 px-4">
+      {
+        services.map(service => (
+          <div
+            id={service.id}
+            data-visible-in-the-view="false"
+            class="scroll-mt-24 border-b border-neutral-light-0 pb-16 last:border-0 data-[visible-in-the-view=true]:motion-preset-slide-up data-[visible-in-the-view=true]:motion-delay-[100ms]"
+          >
+            <div class="flex flex-col gap-8 md:flex-row md:items-start">
+              <div
+                class={`mx-auto flex shrink-0 items-center justify-center overflow-hidden rounded-xl md:mx-0 ${
+                  service.id === "bureautique"
+                    ? "h-56 w-56 md:h-48 md:w-48"
+                    : "h-48 w-48 md:h-40 md:w-40"
+                }`}
+                style={
+                  service.id === "bureautique"
+                    ? undefined
+                    : `background-color: color-mix(in srgb, ${service.color} 12%, white)`
+                }
+              >
+                <video
+                  src={service.video}
+                  class="h-full w-full object-contain"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  preload="auto"
+                />
+              </div>
+              <div class="flex-1">
+                <h2 class="text-heading-sm font-bold">{service.title}</h2>
+                <p class="mt-3 max-w-2xl text-paragraph-lg text-neutral-dark-50">
+                  {service.description}
+                </p>
+                <ul class="mt-6 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
+                  {service.features.map(feature => (
+                    <li class="flex items-start gap-2 text-paragraph-sm text-neutral-dark-30">
+                      <Icon name="chev-right" class="mt-1 h-3 w-3 shrink-0 text-blue-50" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <Process />
+
+  <section class="py-16">
+    <div
+      data-visible-in-the-view="false"
+      class="group main mx-auto flex flex-col items-center gap-4 px-4 text-center"
+    >
+      <h2 class="text-heading-sm font-bold group-data-[visible-in-the-view=true]:motion-preset-slide-up">
+        {t("services.cta.title")}
+      </h2>
+      <p class="max-w-xl text-paragraph-lg text-neutral-dark-50 group-data-[visible-in-the-view=true]:motion-preset-slide-up group-data-[visible-in-the-view=true]:motion-delay-[100ms]">
+        {t("services.cta.description")}
+      </p>
+      <ButtonLink
+        href={getRelativeLocaleUrl(lang, "/contact")}
+        className="mt-2 group-data-[visible-in-the-view=true]:motion-preset-slide-up group-data-[visible-in-the-view=true]:motion-delay-[200ms]"
+      >
+        {t("services.cta.button")} <Icon name="arrow-right" class="ml-2 h-4 w-4" />
+      </ButtonLink>
+    </div>
+  </section>
+</Layout>

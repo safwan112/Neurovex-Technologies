@@ -1,0 +1,22 @@
+---
+import { SITE } from "@/config";
+import Layout from "@/components/layout.astro";
+import Header from "@/components/header.astro";
+import ContactCard from "@/components/contact-card.astro";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+---
+
+<Layout title={`Contact | ${SITE.title}`} description={t("contact.meta.description")}>
+  <section class="relative overflow-hidden bg-gradient-to-br from-blue-light-50 via-blue-light-40 to-blue-light-20">
+    <div class="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-blue-30/20 blur-3xl"></div>
+    <div class="pointer-events-none absolute -bottom-32 -right-16 h-80 w-80 rounded-full bg-blue-50/20 blur-3xl"></div>
+
+    <Header />
+    <div class="main relative z-10 mx-auto pb-16 pt-6 md:pb-24 md:pt-10">
+      <ContactCard />
+    </div>
+  </section>
+</Layout>

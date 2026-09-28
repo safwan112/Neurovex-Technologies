@@ -1,0 +1,30 @@
+---
+import { SITE } from "@/config";
+import Articles from "@/components/blog/articles.astro";
+import { getArticlesByLocale } from "@/lib/utils";
+
+import { getCollection } from "astro:content";
+import BlogHero from "@/components/blog/blog-hero.astro";
+import Layout from "@/components/layout.astro";
+import Header from "@/components/header.astro";
+
+const lang = Astro.currentLocale ?? "fr";
+const articles = await getCollection("blog");
+
+const sortedArticles = getArticlesByLocale(articles, lang);
+---
+
+<Layout title={`Blog | ${SITE.title}`}>
+  <Header />
+  <BlogHero
+    latestArticle={sortedArticles[0]}
+    featuredArticles={sortedArticles.slice(1, 3)}
+  />
+  <Articles articles={sortedArticles} pageNum={1} totalPages={1} />
+</Layout>
+
+<style>
+  body {
+    @apply bg-[#F2F4F7];
+  }
+</style>

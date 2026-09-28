@@ -1,0 +1,54 @@
+---
+import { Icon } from "astro-icon/components";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+---
+
+<section id="our-story" class="bg-neutral-light-30">
+  <div class="main mx-auto">
+    <div
+      class="flex flex-col items-center py-20 md:flex-row md:justify-between"
+    >
+      <h2
+        class="mb-4 text-center text-heading-lg font-bold text-neutral-dark-10 sm:text-left"
+      >
+        {t("about.title")}
+      </h2>
+      <a
+        href="#process"
+        class="flex items-center gap-2 text-label-sm font-bold text-neutral-dark-10 hover:text-neutral-dark-20"
+      >
+        {t("about.processLink")}
+        <Icon name="arrow-down-right" class="h-5 w-5" />
+      </a>
+    </div>
+
+    <div
+      class="grid grid-cols-1 items-center gap-10 pb-20 lg:grid-cols-2 lg:gap-16"
+    >
+      <p class="text-paragraph-md text-neutral-dark-20 2xl:text-paragraph-lg">
+        {t("about.description")}
+        <br /><br />
+        {t("about.description2")}
+      </p>
+
+      <div
+        class="relative mx-auto hidden w-full max-w-[380px] overflow-hidden rounded-2xl shadow-lg md:block"
+      >
+        <video
+          src="/animations/about.webm"
+          class="w-full"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="auto"
+          aria-hidden="true"
+        >
+        </video>
+      </div>
+    </div>
+  </div>
+</section>

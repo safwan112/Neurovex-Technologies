@@ -1,0 +1,86 @@
+---
+import Layout from "@/components/layout.astro";
+import {
+  checkPassword,
+  isAuthenticated,
+  isPasswordConfigured,
+  startSession,
+} from "./auth";
+
+// Dev-only page (injected by the dev-admin integration in astro.config.mjs).
+export const prerender = false;
+
+const requestedNext = Astro.url.searchParams.get("next") ?? "";
+const next = /^\/admin(\/|$)/.test(requestedNext) ? requestedNext : "/admin";
+
+if (isAuthenticated(Astro.cookies)) {
+  return Astro.redirect(next);
+}
+
+let error = "";
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  if (checkPassword(String(form.get("password") ?? ""))) {
+    startSession(Astro.cookies);
+    return Astro.redirect(next);
+  }
+  error = "Mot de passe incorrect.";
+}
+
+const configured = isPasswordConfigured();
+const inputClass =
+  "w-full rounded-xl border border-transparent bg-blue-light-50 px-4 py-3 text-paragraph-sm text-neutral-dark-50 transition-colors focus:border-blue-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-50/20";
+---
+
+<Layout title="Connexion | Admin">
+  <main
+    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-light-50 via-blue-light-40 to-blue-light-20 px-4 py-12 font-poppins"
+  >
+    <div
+      class="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-xl shadow-blue-10/10 md:p-10"
+    >
+      <h1 class="text-2xl font-bold text-neutral-dark-10">Espace articles</h1>
+      {
+        configured ? (
+          <form method="post" class="mt-6 space-y-4">
+            <div>
+              <label
+                for="password"
+                class="mb-1.5 block text-label-sm font-bold text-neutral-dark-10"
+              >
+                Mot de passe
+              </label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                required
+                autofocus
+                autocomplete="current-password"
+                class={inputClass}
+              />
+            </div>
+            {error && (
+              <p class="text-paragraph-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            <button
+              type="submit"
+              class="w-full rounded-full bg-gradient-to-r from-blue-50 to-blue-60 px-8 py-3 text-label-sm font-bold text-white shadow-md shadow-blue-50/30 transition-transform hover:scale-[1.02]"
+            >
+              Se connecter
+            </button>
+          </form>
+        ) : (
+          <p class="mt-4 text-paragraph-sm text-neutral-dark-50">
+            Aucun mot de passe n'est configuré. Ajoutez la ligne{" "}
+            <code>ADMIN_PASSWORD=votre-mot-de-passe</code> dans le fichier{" "}
+            <code>.env</code> à la racine du projet, puis redémarrez{" "}
+            <code>pnpm dev</code>.
+          </p>
+        )
+      }
+    </div>
+  </main>
+</Layout>

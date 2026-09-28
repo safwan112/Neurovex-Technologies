@@ -1,0 +1,46 @@
+---
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+
+interface Props {
+  slug: string;
+  title: string;
+  ogImage?: ImageMetadata;
+}
+
+const { slug, title, ogImage } = Astro.props;
+const palettes = [
+  ["#d7ecf5", "#90cae7", "#17466a"],
+  ["#e1e4fa", "#a8b3ed", "#383f84"],
+  ["#dceeea", "#8ccbc1", "#1b625c"],
+  ["#f2e9dd", "#d8bca0", "#775339"],
+];
+const index =
+  [...slug].reduce((sum, char) => sum + char.charCodeAt(0), 0) %
+  palettes.length;
+const [light, mid, dark] = palettes[index];
+---
+
+{
+  ogImage ? (
+    <Image src={ogImage} alt={title} class="h-full w-full object-cover" />
+  ) : (
+    <div
+      class="relative h-full min-h-[220px] w-full overflow-hidden"
+      style={`background: linear-gradient(135deg, ${light}, ${mid});`}
+      role="img"
+      aria-label={title}
+    >
+      <div class="absolute -right-[12%] -top-[34%] h-[95%] w-[85%] rounded-full border-[36px] border-white/30" />
+      <div class="absolute -bottom-[60%] left-[4%] h-[110%] w-[90%] rounded-full border-[42px] border-white/25" />
+      <div class="absolute left-[12%] top-[16%] h-3 w-3 rounded-full bg-white/70" />
+      <div
+        class="absolute bottom-[12%] right-[10%] flex h-20 w-20 items-center justify-center rounded-3xl border border-white/60 bg-white/30 font-sans text-4xl font-bold backdrop-blur-sm"
+        style={`color: ${dark};`}
+        aria-hidden="true"
+      >
+        N
+      </div>
+    </div>
+  )
+}

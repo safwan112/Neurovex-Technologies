@@ -1,0 +1,28 @@
+---
+import Layout from "@/components/layout.astro";
+import Header from "@/components/header.astro";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+
+const title = "404 | Neurovex Technologies";
+const description = t("notFound.description");
+---
+
+<Layout title={title} description={description}>
+  <Header />
+  <main class="flex min-h-[60vh] flex-col items-center justify-center px-4">
+    <h1 class="text-primary mb-4 text-6xl font-bold">404</h1>
+    <p class="mb-8 text-center text-2xl text-gray-600 dark:text-gray-400">
+      {t("notFound.text")}
+    </p>
+    <a
+      href={getRelativeLocaleUrl(lang, "/")}
+      class="hover:bg-primary/90 rounded-lg px-6 py-3 text-gray-900 transition-colors duration-200"
+    >
+      {t("notFound.backHome")}
+    </a>
+  </main>
+</Layout>

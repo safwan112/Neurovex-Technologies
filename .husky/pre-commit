@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Run the same quality checks for commits on every branch, including main.
+echo ">> Linting staged files..."
+./node_modules/.bin/lint-staged || exit $?
+
+echo ">> Checking Astro project..."
+./node_modules/.bin/astro check

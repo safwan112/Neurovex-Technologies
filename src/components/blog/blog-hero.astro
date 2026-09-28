@@ -1,0 +1,86 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import BlogImage from "./blog-image.astro";
+
+export interface Props {
+  latestArticle: CollectionEntry<"blog">;
+  featuredArticles?: CollectionEntry<"blog">[];
+}
+
+const { latestArticle } = Astro.props;
+const lang = Astro.currentLocale === "en" ? "en" : "fr";
+const en = lang === "en";
+const date = new Intl.DateTimeFormat(en ? "en-GB" : "fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+}).format(latestArticle.data.pubDatetime);
+---
+
+<section class="main mx-auto pb-12 pt-10 md:pb-16 md:pt-16">
+  <div class="mb-9 max-w-3xl md:mb-12">
+    <p
+      class="mb-4 font-sans text-xs font-bold uppercase tracking-[0.22em] text-blue-60"
+    >
+      {en ? "Ideas & practical guides" : "Idées & guides pratiques"}
+    </p>
+    <h1
+      class="font-sans text-5xl font-bold tracking-tight text-neutral-dark-10 md:text-7xl"
+    >
+      {en ? "The Neurovex journal" : "Le journal Neurovex"}
+    </h1>
+    <p
+      class="mt-5 max-w-2xl font-sans text-lg leading-relaxed text-neutral-dark-50 md:text-xl"
+    >
+      {
+        en
+          ? "Clear advice for better equipped, better connected businesses."
+          : "Des conseils clairs pour des entreprises mieux équipées et mieux connectées."
+      }
+    </p>
+  </div>
+  <a
+    href={getRelativeLocaleUrl(lang, `/blog/${latestArticle.data.slug}`)}
+    class="group grid overflow-hidden rounded-[1.75rem] bg-[#152431] text-white shadow-[0_24px_70px_-42px_rgba(12,31,49,0.6)] md:grid-cols-2"
+  >
+    <div
+      class="order-2 flex flex-col justify-center p-7 sm:p-10 md:order-1 md:p-14"
+    >
+      <div
+        class="mb-8 flex flex-wrap items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[#9bd5f4]"
+      >
+        <span class="rounded-full border border-white/25 px-3 py-1.5"
+          >{en ? "Featured article" : "À la une"}</span
+        >
+        <span>{date}</span>
+      </div>
+      <h2
+        class="max-w-xl font-sans text-3xl font-semibold leading-tight tracking-tight md:text-4xl lg:text-5xl"
+      >
+        {latestArticle.data.title}
+      </h2>
+      <p
+        class="mt-5 max-w-lg font-sans text-base leading-relaxed text-white/70"
+      >
+        {latestArticle.data.description}
+      </p>
+      <span
+        class="mt-9 inline-flex items-center gap-3 font-sans text-sm font-semibold text-white"
+      >
+        {en ? "Read the article" : "Lire l’article"}
+        <span
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#152431] transition-transform group-hover:translate-x-1"
+          aria-hidden="true">→</span
+        >
+      </span>
+    </div>
+    <div class="order-1 min-h-[260px] md:order-2 md:min-h-[440px]">
+      <BlogImage
+        slug={latestArticle.data.slug}
+        title={latestArticle.data.title}
+        ogImage={latestArticle.data.ogImage}
+      />
+    </div>
+  </a>
+</section>

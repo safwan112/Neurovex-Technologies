@@ -1,0 +1,19 @@
+---
+import { SITE } from "@/config";
+import Layout from "@/components/layout.astro";
+import Header from "@/components/header.astro";
+import OurStory from "@/components/about/our-story.astro";
+import Process from "@/components/about/process.astro";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+---
+
+<Layout title={`${t("nav.about")} | ${SITE.title}`}>
+  <section class="relative bg-neutral-light-30">
+    <Header />
+  </section>
+  <OurStory />
+  <Process />
+</Layout>

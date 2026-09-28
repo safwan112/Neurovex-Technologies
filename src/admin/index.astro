@@ -1,0 +1,197 @@
+---
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { getCollection } from "astro:content";
+import Layout from "@/components/layout.astro";
+import { isAuthenticated, loginRedirect } from "./auth";
+import { DELETED_MARKER } from "./save-article";
+
+// Dev-only page (injected by the dev-admin integration in astro.config.mjs).
+export const prerender = false;
+
+if (!isAuthenticated(Astro.cookies)) {
+  return Astro.redirect(loginRedirect("/admin"));
+}
+
+interface ArticleRow {
+  folder: string;
+  title: string;
+  slug: string;
+  date: Date;
+  languages: string[];
+  draft: boolean;
+}
+
+// Entry ids look like "<folder>/index" or "<folder>/index.en". Articles
+// deleted during this dev session linger in the content store until the next
+// restart, so skip folders that are gone or marked as deleted.
+const isDeleted = (folder: string) => {
+  const folderPath = path.join(process.cwd(), "articles", folder);
+  return (
+    !existsSync(folderPath) || existsSync(path.join(folderPath, DELETED_MARKER))
+  );
+};
+
+const rows = new Map<string, ArticleRow>();
+for (const entry of await getCollection("blog")) {
+  const folder = entry.id.split("/")[0];
+  if (isDeleted(folder)) continue;
+  const row = rows.get(folder) ?? {
+    folder,
+    title: entry.data.title,
+    slug: entry.data.slug,
+    date: entry.data.pubDatetime,
+    languages: [],
+    draft: Boolean(entry.data.draft),
+  };
+  if (entry.data.lang === "fr") row.title = entry.data.title;
+  row.languages.push(entry.data.lang.toUpperCase());
+  rows.set(folder, row);
+}
+
+const articles = [...rows.values()].sort(
+  (a, b) => b.date.getTime() - a.date.getTime()
+);
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+---
+
+<Layout title="Articles | Admin">
+  <main
+    class="min-h-screen bg-gradient-to-br from-blue-light-50 via-blue-light-40 to-blue-light-20 py-12 font-poppins md:py-16"
+  >
+    <div class="main mx-auto max-w-4xl">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <a
+          href="/blog"
+          class="text-label-sm font-bold text-blue-60 hover:text-blue-50"
+        >
+          ← Retour au blog
+        </a>
+        <form method="post" action="/admin/logout">
+          <button
+            type="submit"
+            class="text-label-sm font-bold text-neutral-dark-50 hover:text-neutral-dark-10"
+          >
+            Se déconnecter
+          </button>
+        </form>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
+        <h1 class="text-3xl font-bold text-neutral-dark-10 md:text-heading-sm">
+          Articles
+        </h1>
+        <a
+          href="/admin/new-article"
+          class="rounded-full bg-gradient-to-r from-blue-50 to-blue-60 px-6 py-3 text-label-sm font-bold text-white shadow-md shadow-blue-50/30 transition-transform hover:scale-[1.02]"
+        >
+          + Nouvel article
+        </a>
+      </div>
+
+      <p
+        id="admin-message"
+        class="mt-6 hidden rounded-xl bg-white p-4 text-paragraph-sm"
+        role="status"
+        aria-live="polite"
+      >
+      </p>
+
+      <ul
+        class="mt-6 divide-y divide-neutral-dark-10/10 overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-blue-10/10"
+      >
+        {
+          articles.map(article => (
+            <li
+              class="flex flex-wrap items-center justify-between gap-4 p-5 md:px-8"
+              data-folder={article.folder}
+            >
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-semibold uppercase tracking-[0.13em] text-blue-60">
+                  {formatDate(article.date)} · {article.languages.join(" + ")}
+                  {article.draft && (
+                    <span class="ml-2 rounded-full bg-neutral-light-30 px-2 py-0.5 text-neutral-dark-50">
+                      Brouillon
+                    </span>
+                  )}
+                </p>
+                {article.draft ? (
+                  <p class="mt-1 font-semibold text-neutral-dark-10">
+                    {article.title}
+                  </p>
+                ) : (
+                  <a
+                    href={`/blog/${article.slug}`}
+                    class="mt-1 block font-semibold text-neutral-dark-10 hover:text-blue-60"
+                  >
+                    {article.title}
+                  </a>
+                )}
+              </div>
+              <button
+                type="button"
+                class="delete-article rounded-full border border-red-200 px-4 py-2 text-label-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                data-folder={article.folder}
+                data-title={article.title}
+              >
+                Supprimer
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const message = document.getElementById("admin-message");
+
+  const showMessage = (text: string, isError = false) => {
+    if (!message) return;
+    message.textContent = text;
+    message.classList.toggle("text-red-600", isError);
+    message.classList.toggle("text-neutral-dark-10", !isError);
+    message.classList.remove("hidden");
+  };
+
+  document
+    .querySelectorAll<HTMLButtonElement>(".delete-article")
+    .forEach(button => {
+      button.addEventListener("click", async () => {
+        const { folder, title } = button.dataset;
+        if (!folder) return;
+        const confirmed = window.confirm(
+          `Supprimer « ${title} » (français et anglais) ?\n\nL'article sera déplacé dans le dossier .trash/ du projet.`
+        );
+        if (!confirmed) return;
+
+        button.disabled = true;
+        try {
+          const response = await fetch(
+            `/api/admin/articles?folder=${encodeURIComponent(folder)}`,
+            { method: "DELETE" }
+          );
+          const result = await response.json();
+          if (!response.ok) {
+            showMessage(result.error ?? "La suppression a échoué.", true);
+            button.disabled = false;
+            return;
+          }
+          button.closest("li")?.remove();
+          showMessage(
+            `« ${title} » a été supprimé (copie dans ${result.trash}).`
+          );
+        } catch {
+          showMessage("Impossible de contacter le serveur.", true);
+          button.disabled = false;
+        }
+      });
+    });
+</script>

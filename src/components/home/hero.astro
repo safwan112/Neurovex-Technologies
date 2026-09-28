@@ -1,0 +1,199 @@
+---
+import { ButtonLink } from "../button";
+import Header from "../header.astro";
+import { Icon } from "astro-icon/components";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+
+const heroLine1 = t("hero.title.line1");
+const heroLine2 = t("hero.title.line2");
+const heroLine3 = t("hero.title.line3");
+---
+
+<section class="relative overflow-hidden bg-[#DCEFFB]">
+  <div class="absolute inset-0 z-0 lg:block">
+    <div class="bg-grid-pattern absolute inset-0 opacity-10"></div>
+  </div>
+  <Header />
+  <div class="main relative z-10 mx-auto pb-0 pt-2 md:pt-16">
+    <div class="flex flex-col items-center">
+      <div class="z-10 w-full">
+        <h1
+          class="motion-preset-slide-down mt-4 block w-full max-w-screen-lg text-center font-sans text-3xl font-extrabold motion-delay-[100ms] md:hidden md:text-left md:text-title"
+        >
+          {t("hero.title.mobile")}
+        </h1>
+
+        <div
+          class="hidden w-full max-w-screen-lg text-center font-sans text-heading-lg font-bold md:block md:text-left md:text-title"
+        >
+          <p
+            class="js-typewriter-line m-preset-typewriter-[22] motion-loop-once"
+            style={`--motion-typewriter-value: ${heroLine1.length + 1}ch`}
+          >
+            {heroLine1}
+          </p>
+          <p
+            class="js-typewriter-line m-preset-typewriter-[22] motion-delay-[400ms] motion-loop-once"
+            style={`--motion-typewriter-value: ${heroLine2.length + 1}ch`}
+          >
+            {heroLine2}
+          </p>
+          <p
+            class="js-typewriter-line m-preset-typewriter-[18] motion-delay-[800ms] motion-loop-once"
+            style={`--motion-typewriter-value: ${heroLine3.length + 1}ch`}
+          >
+            {heroLine3}
+          </p>
+        </div>
+        <p
+          class="text-md motion-preset-slide-down my-4 max-w-[600px] text-center font-sans font-thin motion-delay-[200ms] motion-ease-spring-smooth md:my-8 md:text-left md:text-label-sm md:motion-delay-[700ms]"
+        >
+          {t("hero.description")}
+        </p>
+        <div
+          class="hidden justify-center space-x-4 py-4 md:flex md:flex-row md:justify-start"
+        >
+          <ButtonLink
+            href={getRelativeLocaleUrl(lang, "/services")}
+            className="motion-preset-slide-down hidden motion-delay-[1000ms] motion-ease-spring-smooth md:flex"
+          >
+            {t("hero.cta.services")} <Icon name="arrow-right" class="ml-2 rotate-45" />
+          </ButtonLink>
+          <ButtonLink
+            variant="outline"
+            href={getRelativeLocaleUrl(lang, "/contact")}
+            className="motion-preset-slide-down hidden self-center motion-delay-[1150ms] motion-ease-spring-smooth md:flex"
+          >
+            {t("hero.cta.contact")} <Icon name="arrow-right" class="ml-2" />
+          </ButtonLink>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="motion-preset-slide-up motion-delay-[300ms] motion-ease-spring-smooth pointer-events-none -mb-2 mt-6 w-full md:-mb-4 md:-mt-32 lg:-mt-44"
+    >
+      <img
+        src="/animations/anime-hands.gif"
+        alt=""
+        class="mx-auto w-full max-w-6xl"
+        loading="eager"
+        decoding="async"
+      />
+    </div>
+  </div>
+</section>
+
+<script>
+  // "ch" only equals a character's true rendered width in a monospace font.
+  // Our heading uses a proportional font, so the ch-based fallback width set
+  // inline can overshoot the real text width, pushing the blinking cursor
+  // (border-right) far past the last visible character. Replace it with the
+  // element's actual measured pixel width so the cursor lands right after
+  // the text, in any language/font.
+  document.querySelectorAll<HTMLElement>(".js-typewriter-line").forEach(el => {
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.style.position = "absolute";
+    clone.style.visibility = "hidden";
+    clone.style.width = "auto";
+    clone.style.animation = "none";
+    clone.style.overflow = "visible";
+    el.after(clone);
+    const width = clone.getBoundingClientRect().width;
+    clone.remove();
+    if (width > 0) {
+      el.style.setProperty("--motion-typewriter-value", `${Math.ceil(width) + 2}px`);
+    }
+  });
+</script>
+
+<style>
+  .bg-grid-pattern {
+    background-image: linear-gradient(to right, #636161 1px, transparent 1px),
+      linear-gradient(to bottom, #636161 1px, transparent 1px);
+    background-size: 100px 100px; /* Smaller squares for mobile screens */
+    animation: move-grid 8s linear infinite 2s;
+  }
+
+  @media (min-width: 768px) {
+    .bg-grid-pattern {
+      background-size: 200px 200px; /* Larger squares for larger screens */
+    }
+  }
+
+  @keyframes move-grid {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: -200px 0px;
+    }
+  }
+
+  /* custom typewriter animation based on tailwind motion but with some tweaks to make it work for our use case */
+  .m-preset-typewriter-\[22\] {
+    --motion-duration: 900ms;
+    --motion-typewriter-value: 22ch;
+    animation:
+      typing var(--motion-duration) steps(22) var(--motion-delay, 0ms) forwards,
+      blink 0.4s step-end var(--motion-delay, 0ms) none;
+    white-space: nowrap;
+    border-right: 2px solid;
+    border-color: transparent;
+    /* font-family: monospace; */
+    overflow: hidden;
+    width: 0;
+  }
+  .m-preset-typewriter-\[18\] {
+    --motion-duration: 900ms;
+    --motion-typewriter-value: 13.5ch;
+    animation:
+      typing var(--motion-duration) steps(18) var(--motion-delay, 0ms) forwards,
+      blink-last-line 0.6s steps(2, jump-none) var(--motion-delay, 0ms) infinite;
+    white-space: nowrap;
+    border-right: 2px solid;
+    border-color: transparent;
+    overflow: hidden;
+    width: 0;
+  }
+  @media screen and (prefers-reduced-motion: no-preference) {
+    @keyframes typing {
+      10% {
+        width: 0;
+      }
+      40%,
+      60% {
+        width: calc(var(--motion-typewriter-value) + 1px);
+      }
+      100% {
+        width: var(--motion-typewriter-value);
+      }
+    }
+  }
+  @keyframes blink {
+    0% {
+      border-color: black;
+    }
+    50% {
+      border-color: black;
+    }
+    95% {
+      border-color: black;
+    }
+    100% {
+      border-color: transparent;
+    }
+  }
+  @keyframes blink-last-line {
+    0% {
+      border-color: black;
+    }
+    50% {
+      border-color: transparent;
+    }
+  }
+</style>

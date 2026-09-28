@@ -1,0 +1,27 @@
+---
+import FaqItem from "./faq-item.astro";
+import { useTranslations } from "@/i18n/utils";
+
+const lang = Astro.currentLocale ?? "fr";
+const t = useTranslations(lang);
+const faqItems = t("faq.items");
+---
+
+<section class="bg-[#F2F4F7] py-16">
+  <div class="main mx-auto px-4">
+    <h2 class="text-3xl font-bold">{t("faq.heading")}</h2>
+    <p class="text-paragraph-md">
+      {t("faq.subtitle")} <br />
+      {t("faq.subtitle2")}
+    </p>
+    <div class="space-y-1 pt-4">
+      {
+        faqItems.map(item => (
+          <FaqItem open={false} label={item.label}>
+            <Fragment set:html={item.answer} />
+          </FaqItem>
+        ))
+      }
+    </div>
+  </div>
+</section>
