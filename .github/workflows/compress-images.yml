@@ -16,9 +16,12 @@ jobs:
   build:
     name: calibreapp/image-actions
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Compress Images
@@ -30,7 +33,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.calibre.outputs.markdown != ''
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v7
         with:
           title: Auto Compress Images
           branch-suffix: timestamp
