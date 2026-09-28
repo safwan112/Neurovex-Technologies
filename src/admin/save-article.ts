@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import {
-  access,
+  appendFile,
   cp,
   mkdir,
   readdir,
@@ -10,20 +10,27 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { isAuthenticated, unauthorized } from "./auth";
+import {
+  ARTICLES_DIR,
+  AUTHORS_DIR,
+  DELETED_MARKER,
+  FOLDER_PATTERN,
+  LANGUAGES,
+  TRASH_DIR,
+  UNUSED_FILES_MARKER,
+  buildMarkdown,
+  exists,
+  fileNameFor,
+  isValidFolder,
+  readArticleVersion,
+  type ArticleVersion,
+  type Lang,
+} from "./article-files";
 
 // Dev-only endpoint (injected by the dev-admin integration in astro.config.mjs).
-// POST writes a new article as Markdown files into the top-level `articles/`
-// folder; DELETE copies an article folder to `.trash/articles/` and removes
-// its Markdown files.
+// POST creates an article folder in `articles/`, PUT updates one, and DELETE
+// copies one to `.trash/articles/` and removes its Markdown files.
 export const prerender = false;
-
-const ROOT = process.cwd();
-const ARTICLES_DIR = path.join(ROOT, "articles");
-const AUTHORS_DIR = path.join(ROOT, "authors");
-const TRASH_DIR = path.join(ROOT, ".trash", "articles");
-const FOLDER_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-// Keep in sync with the dev-admin integration in astro.config.mjs.
-export const DELETED_MARKER = ".deleted";
 
 const COVER_TYPES: Record<string, string> = {
   "image/png": "png",
@@ -32,17 +39,18 @@ const COVER_TYPES: Record<string, string> = {
 };
 const MAX_COVER_SIZE = 5 * 1024 * 1024;
 
-interface ArticleFields {
-  title: string;
-  description: string;
-  tags: string[];
-  keywords: string[];
-  date: string;
-  author: string;
-  slug: string;
-  lang: "fr" | "en";
-  cover?: string;
-  body: string;
+type FormVersion = Pick<
+  ArticleVersion,
+  "title" | "description" | "body" | "tags" | "keywords"
+>;
+
+class FormError extends Error {
+  constructor(
+    message: string,
+    public status = 400
+  ) {
+    super(message);
+  }
 }
 
 const text = (form: FormData, key: string) =>
@@ -54,40 +62,227 @@ const list = (value: string) =>
     .map(item => item.trim())
     .filter(Boolean);
 
-const quote = (value: string) => JSON.stringify(value);
-const quoteList = (values: string[]) => `[${values.map(quote).join(", ")}]`;
-
-const exists = async (target: string) => {
-  try {
-    await access(target);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const buildMarkdown = (article: ArticleFields) => {
-  const lines = [
-    "---",
-    `title: ${quote(article.title)}`,
-    `tags: ${quoteList(article.tags)}`,
-    `keywords: ${quoteList(article.keywords)}`,
-    `pubDatetime: ${article.date}`,
-    `authors: ${quoteList([article.author])}`,
-    `slug: ${article.slug}`,
-    `lang: ${quote(article.lang)}`,
-    `description: ${quote(article.description)}`,
-  ];
-  if (article.cover) lines.push(`ogImage: ${quote(article.cover)}`);
-  lines.push("---", "", article.body.replace(/\r\n/g, "\n").trim(), "");
-  return lines.join("\n");
-};
-
-const error = (message: string, status = 400) =>
-  new Response(JSON.stringify({ error: message }), {
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json" },
   });
+
+const readDate = (form: FormData) => {
+  const date = text(form, "date");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new FormError("La date est invalide.");
+  }
+  return date;
+};
+
+// Returns the filled-in language versions; English is optional.
+const readVersions = (form: FormData) => {
+  const versions = new Map<Lang, FormVersion>();
+  for (const lang of LANGUAGES) {
+    const title = text(form, `${lang}-title`);
+    const description = text(form, `${lang}-description`);
+    const body = text(form, `${lang}-body`);
+
+    if (lang === "en" && !title && !description && !body) continue;
+    if (!title || !description || !body) {
+      throw new FormError(
+        lang === "fr"
+          ? "Le titre, la description et le contenu en français sont obligatoires."
+          : "Pour la version anglaise, remplissez le titre, la description et le contenu (ou laissez les trois vides)."
+      );
+    }
+
+    const tags = list(text(form, `${lang}-tags`));
+    const keywords = list(text(form, `${lang}-keywords`));
+    versions.set(lang, {
+      title,
+      description,
+      body,
+      tags: tags.length ? tags : ["Neurovex"],
+      keywords: keywords.length ? keywords : tags,
+    });
+  }
+  return versions;
+};
+
+// Validates an uploaded cover; returns undefined when none was chosen.
+const readCover = (form: FormData) => {
+  const file = form.get("cover");
+  if (!(file instanceof File) || file.size === 0) return undefined;
+
+  const extension = COVER_TYPES[file.type];
+  if (!extension) {
+    throw new FormError("L'image doit être au format PNG, JPG ou WebP.");
+  }
+  if (file.size > MAX_COVER_SIZE) {
+    throw new FormError("L'image ne doit pas dépasser 5 Mo.");
+  }
+  return { file, extension };
+};
+
+const articleLinks = (slug: string, langs: Lang[]) =>
+  langs.map(lang => (lang === "fr" ? `/blog/${slug}` : `/en/blog/${slug}`));
+
+const handle =
+  (handler: APIRoute): APIRoute =>
+  async context => {
+    if (!isAuthenticated(context.cookies)) return unauthorized();
+    try {
+      return await handler(context);
+    } catch (caught) {
+      if (caught instanceof FormError) {
+        return json({ error: caught.message }, caught.status);
+      }
+      throw caught;
+    }
+  };
+
+export const POST = handle(async ({ request }) => {
+  const form = await request.formData();
+  const slug = text(form, "slug");
+  const author = text(form, "author");
+  const date = readDate(form);
+
+  if (!FOLDER_PATTERN.test(slug)) {
+    throw new FormError(
+      "Le slug doit contenir uniquement des lettres minuscules, des chiffres et des tirets."
+    );
+  }
+  if (
+    !/^[a-z0-9-]+$/.test(author) ||
+    !(await exists(path.join(AUTHORS_DIR, `${author}.json`)))
+  ) {
+    throw new FormError("L'auteur sélectionné n'existe pas.");
+  }
+
+  const articleDir = path.join(ARTICLES_DIR, slug);
+  if (await exists(path.join(articleDir, DELETED_MARKER))) {
+    throw new FormError(
+      `L'article « ${slug} » vient d'être supprimé. Redémarrez pnpm dev pour réutiliser cette adresse.`,
+      409
+    );
+  }
+  if (await exists(articleDir)) {
+    throw new FormError(
+      `Un article avec le slug « ${slug} » existe déjà.`,
+      409
+    );
+  }
+
+  const versions = readVersions(form);
+  const cover = readCover(form);
+  const coverName = cover && `cover.${cover.extension}`;
+
+  await mkdir(articleDir, { recursive: true });
+  if (cover && coverName) {
+    await writeFile(
+      path.join(articleDir, coverName),
+      Buffer.from(await cover.file.arrayBuffer())
+    );
+  }
+  for (const [lang, version] of versions) {
+    await writeFile(
+      path.join(articleDir, fileNameFor(lang)),
+      buildMarkdown({
+        ...version,
+        date,
+        lang,
+        slug,
+        authors: [author],
+        cover: coverName && `./${coverName}`,
+        extra: {},
+      }),
+      "utf-8"
+    );
+  }
+
+  return json(
+    {
+      folder: `articles/${slug}`,
+      links: articleLinks(slug, [...versions.keys()]),
+    },
+    201
+  );
+});
+
+export const PUT = handle(async ({ request, url }) => {
+  const folder = url.searchParams.get("folder") ?? "";
+  if (!(await isValidFolder(folder))) {
+    throw new FormError("Article introuvable.", 404);
+  }
+  const articleDir = path.join(ARTICLES_DIR, folder);
+
+  const form = await request.formData();
+  const date = readDate(form);
+  const versions = readVersions(form);
+  const cover = readCover(form);
+
+  const existing = new Map<Lang, ArticleVersion>();
+  for (const lang of LANGUAGES) {
+    const version = await readArticleVersion(folder, lang);
+    if (version) existing.set(lang, version);
+  }
+  const base = existing.get("fr") ?? existing.values().next().value;
+  if (!base) throw new FormError("Article introuvable.", 404);
+
+  // Removing a language would delete its file, which the running dev server
+  // does not pick up on Windows (see DELETE below), so it is not offered here.
+  for (const lang of existing.keys()) {
+    if (!versions.has(lang)) {
+      throw new FormError(
+        lang === "en"
+          ? "La version anglaise existe déjà : remplissez ses champs (elle ne peut pas être retirée ici)."
+          : "La version française est obligatoire."
+      );
+    }
+  }
+
+  // A new cover gets a unique name: the dev server keeps importing the old
+  // file until restart, so the old one is only listed for cleanup at startup.
+  let newCover: string | undefined;
+  if (cover) {
+    newCover = `./cover-${Date.now()}.${cover.extension}`;
+    await writeFile(
+      path.join(articleDir, newCover),
+      Buffer.from(await cover.file.arrayBuffer())
+    );
+    const oldCovers = new Set(
+      [...existing.values()]
+        .map(version => version.cover)
+        .filter((file): file is string => !!file && file.startsWith("./"))
+    );
+    for (const oldCover of oldCovers) {
+      await appendFile(
+        path.join(articleDir, UNUSED_FILES_MARKER),
+        `${path.basename(oldCover)}\n`,
+        "utf-8"
+      );
+    }
+  }
+
+  for (const [lang, version] of versions) {
+    const previous = existing.get(lang) ?? base;
+    await writeFile(
+      path.join(articleDir, fileNameFor(lang)),
+      buildMarkdown({
+        ...version,
+        date,
+        lang,
+        slug: base.slug,
+        authors: previous.authors.length ? previous.authors : base.authors,
+        cover: newCover ?? previous.cover,
+        extra: existing.has(lang) ? previous.extra : {},
+      }),
+      "utf-8"
+    );
+  }
+
+  return json({
+    folder: `articles/${folder}`,
+    links: articleLinks(base.slug, [...versions.keys()]),
+  });
+});
 
 const markAsDeletedDraft = (content: string) => {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -98,18 +293,12 @@ const markAsDeletedDraft = (content: string) => {
   return `---\n${[...frontmatter, "draft: true"].join("\n")}\n---\n`;
 };
 
-export const DELETE: APIRoute = async ({ url, cookies }) => {
-  if (!isAuthenticated(cookies)) return unauthorized();
-
+export const DELETE = handle(async ({ url }) => {
   const folder = url.searchParams.get("folder") ?? "";
-  const articleDir = path.join(ARTICLES_DIR, folder);
-  if (
-    !FOLDER_PATTERN.test(folder) ||
-    !(await exists(articleDir)) ||
-    (await exists(path.join(articleDir, DELETED_MARKER)))
-  ) {
-    return error("Article introuvable.", 404);
+  if (!(await isValidFolder(folder))) {
+    throw new FormError("Article introuvable.", 404);
   }
+  const articleDir = path.join(ARTICLES_DIR, folder);
 
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const trashName = `${folder}-${stamp}`;
@@ -135,114 +324,5 @@ export const DELETE: APIRoute = async ({ url, cookies }) => {
     await rm(path.join(articleDir, file), { force: true });
   }
 
-  return new Response(
-    JSON.stringify({ trash: `.trash/articles/${trashName}` }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
-};
-
-export const POST: APIRoute = async ({ request, cookies }) => {
-  if (!isAuthenticated(cookies)) return unauthorized();
-
-  const form = await request.formData();
-
-  const slug = text(form, "slug");
-  const date = text(form, "date");
-  const author = text(form, "author");
-
-  if (!FOLDER_PATTERN.test(slug)) {
-    return error(
-      "Le slug doit contenir uniquement des lettres minuscules, des chiffres et des tirets."
-    );
-  }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return error("La date est invalide.");
-  }
-  if (
-    !/^[a-z0-9-]+$/.test(author) ||
-    !(await exists(path.join(AUTHORS_DIR, `${author}.json`)))
-  ) {
-    return error("L'auteur sélectionné n'existe pas.");
-  }
-
-  const articleDir = path.join(ARTICLES_DIR, slug);
-  if (await exists(path.join(articleDir, DELETED_MARKER))) {
-    return error(
-      `L'article « ${slug} » vient d'être supprimé. Redémarrez pnpm dev pour réutiliser cette adresse.`,
-      409
-    );
-  }
-  if (await exists(articleDir)) {
-    return error(`Un article avec le slug « ${slug} » existe déjà.`, 409);
-  }
-
-  const versions: ArticleFields[] = [];
-  for (const lang of ["fr", "en"] as const) {
-    const title = text(form, `${lang}-title`);
-    const description = text(form, `${lang}-description`);
-    const body = text(form, `${lang}-body`);
-    const hasContent = title || description || body;
-
-    if (lang === "en" && !hasContent) continue;
-    if (!title || !description || !body) {
-      return error(
-        lang === "fr"
-          ? "Le titre, la description et le contenu en français sont obligatoires."
-          : "Pour la version anglaise, remplissez le titre, la description et le contenu (ou laissez les trois vides)."
-      );
-    }
-
-    const tags = list(text(form, `${lang}-tags`));
-    const keywords = list(text(form, `${lang}-keywords`));
-    versions.push({
-      title,
-      description,
-      body,
-      tags: tags.length ? tags : ["Neurovex"],
-      keywords: keywords.length ? keywords : tags,
-      date,
-      author,
-      slug,
-      lang,
-    });
-  }
-
-  let cover: string | undefined;
-  const coverFile = form.get("cover");
-  if (coverFile instanceof File && coverFile.size > 0) {
-    const extension = COVER_TYPES[coverFile.type];
-    if (!extension) {
-      return error("L'image doit être au format PNG, JPG ou WebP.");
-    }
-    if (coverFile.size > MAX_COVER_SIZE) {
-      return error("L'image ne doit pas dépasser 5 Mo.");
-    }
-    cover = `cover.${extension}`;
-  }
-
-  await mkdir(articleDir, { recursive: true });
-  if (cover && coverFile instanceof File) {
-    await writeFile(
-      path.join(articleDir, cover),
-      Buffer.from(await coverFile.arrayBuffer())
-    );
-  }
-  for (const version of versions) {
-    const fileName = version.lang === "fr" ? "index.md" : "index.en.md";
-    await writeFile(
-      path.join(articleDir, fileName),
-      buildMarkdown({ ...version, cover: cover && `./${cover}` }),
-      "utf-8"
-    );
-  }
-
-  return new Response(
-    JSON.stringify({
-      folder: `articles/${slug}`,
-      links: versions.map(version =>
-        version.lang === "fr" ? `/blog/${slug}` : `/en/blog/${slug}`
-      ),
-    }),
-    { status: 201, headers: { "Content-Type": "application/json" } }
-  );
-};
+  return json({ trash: `.trash/articles/${trashName}` });
+});

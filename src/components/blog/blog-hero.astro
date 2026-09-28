@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { getRelativeLocaleUrl } from "astro:i18n";
+import { getReadingTimeLabel } from "@/lib/utils";
 import BlogImage from "./blog-image.astro";
 
 export interface Props {
@@ -54,6 +55,8 @@ const date = new Intl.DateTimeFormat(en ? "en-GB" : "fr-FR", {
           >{en ? "Featured article" : "À la une"}</span
         >
         <span>{date}</span>
+        <span aria-hidden="true">·</span>
+        <span>{getReadingTimeLabel(latestArticle.body, lang)}</span>
       </div>
       <h2
         class="max-w-xl font-sans text-3xl font-semibold leading-tight tracking-tight md:text-4xl lg:text-5xl"

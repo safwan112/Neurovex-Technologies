@@ -4,7 +4,7 @@ import path from "node:path";
 import { getCollection } from "astro:content";
 import Layout from "@/components/layout.astro";
 import { isAuthenticated, loginRedirect } from "./auth";
-import { DELETED_MARKER } from "./save-article";
+import { DELETED_MARKER } from "./article-files";
 
 // Dev-only page (injected by the dev-admin integration in astro.config.mjs).
 export const prerender = false;
@@ -134,14 +134,22 @@ const formatDate = (date: Date) =>
                   </a>
                 )}
               </div>
-              <button
-                type="button"
-                class="delete-article rounded-full border border-red-200 px-4 py-2 text-label-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
-                data-folder={article.folder}
-                data-title={article.title}
-              >
-                Supprimer
-              </button>
+              <div class="flex gap-2">
+                <a
+                  href={`/admin/edit-article?folder=${encodeURIComponent(article.folder)}`}
+                  class="rounded-full border border-blue-50/30 px-4 py-2 text-label-sm font-bold text-blue-60 transition-colors hover:bg-blue-light-50"
+                >
+                  Modifier
+                </a>
+                <button
+                  type="button"
+                  class="delete-article rounded-full border border-red-200 px-4 py-2 text-label-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                  data-folder={article.folder}
+                  data-title={article.title}
+                >
+                  Supprimer
+                </button>
+              </div>
             </li>
           ))
         }

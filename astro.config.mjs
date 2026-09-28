@@ -1,6 +1,7 @@
-import { existsSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import matter from "gray-matter";
 import { defineConfig, envField } from "astro/config";
 import tailwind from "@astrojs/tailwind";
 import react from "@astrojs/react";
@@ -119,17 +120,47 @@ const envSchema = {
 
 const redirects = getAstroRedirects();
 
-// Removes article folders the admin marked as deleted (see
-// src/admin/save-article.ts); their content is already copied to .trash/.
-const removeDeletedArticles = () => {
-  const articlesDir = fileURLToPath(new URL("./articles/", import.meta.url));
+const articlesDir = fileURLToPath(new URL("./articles/", import.meta.url));
+
+// Cleans up after the article admin (see src/admin/save-article.ts): removes
+// folders marked as deleted (already copied to .trash/) and cover images that
+// an edit replaced. Both are kept while the dev server that used them runs.
+const cleanUpArticleFolders = () => {
   for (const folder of readdirSync(articlesDir)) {
     const folderPath = path.join(articlesDir, folder);
     if (existsSync(path.join(folderPath, ".deleted"))) {
       rmSync(folderPath, { recursive: true, force: true });
+      continue;
+    }
+    const unusedList = path.join(folderPath, ".unused");
+    if (existsSync(unusedList)) {
+      for (const file of readFileSync(unusedList, "utf-8").split("\n")) {
+        const name = path.basename(file.trim());
+        if (name) rmSync(path.join(folderPath, name), { force: true });
+      }
+      rmSync(unusedList, { force: true });
     }
   }
 };
+
+// Publication date of each article page, used as <lastmod> in the sitemap.
+const getArticleDates = () => {
+  const dates = new Map();
+  for (const folder of readdirSync(articlesDir)) {
+    for (const [file, prefix] of [
+      ["index.md", "/blog/"],
+      ["index.en.md", "/en/blog/"],
+    ]) {
+      const filePath = path.join(articlesDir, folder, file);
+      if (!existsSync(filePath)) continue;
+      const { data } = matter(readFileSync(filePath, "utf-8"));
+      if (data.draft || !data.pubDatetime) continue;
+      dates.set(`${prefix}${data.slug ?? folder}`, new Date(data.pubDatetime));
+    }
+  }
+  return dates;
+};
+const articleDates = getArticleDates();
 
 // Password-protected article admin (/admin): only registered during
 // `astro dev`, so it is never part of the production build.
@@ -137,7 +168,7 @@ const devAdmin = {
   name: "neurovex-dev-admin",
   hooks: {
     "astro:config:setup": ({ command, injectRoute }) => {
-      removeDeletedArticles();
+      cleanUpArticleFolders();
       if (command !== "dev") return;
       injectRoute({
         pattern: "/admin",
@@ -154,6 +185,10 @@ const devAdmin = {
       injectRoute({
         pattern: "/admin/new-article",
         entrypoint: "./src/admin/new-article.astro",
+      });
+      injectRoute({
+        pattern: "/admin/edit-article",
+        entrypoint: "./src/admin/edit-article.astro",
       });
       injectRoute({
         pattern: "/api/admin/articles",
@@ -204,6 +239,18 @@ export default defineConfig({
           /^\/podcast\/new(?:\/|$)/,
           /^\/podcast\/planning(?:\/|$)/,
         ].some(pattern => pattern.test(path));
+      },
+      // Links each French page to its English version (hreflang alternates).
+      i18n: {
+        defaultLocale: "fr",
+        locales: { fr: "fr-FR", en: "en-US" },
+      },
+      serialize: item => {
+        const pathname = new URL(item.url).pathname
+          .replace(/\.html$/, "")
+          .replace(/\/$/, "");
+        const date = articleDates.get(pathname);
+        return date ? { ...item, lastmod: date.toISOString() } : item;
       },
     }),
     icon(),

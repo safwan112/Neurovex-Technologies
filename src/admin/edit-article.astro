@@ -1,0 +1,44 @@
+---
+import ArticleForm from "./article-form.astro";
+import { isAuthenticated, loginRedirect } from "./auth";
+import {
+  LANGUAGES,
+  isValidFolder,
+  readArticleVersion,
+  type ArticleVersion,
+  type Lang,
+} from "./article-files";
+
+// Dev-only page (injected by the dev-admin integration in astro.config.mjs).
+export const prerender = false;
+
+const folder = Astro.url.searchParams.get("folder") ?? "";
+
+if (!isAuthenticated(Astro.cookies)) {
+  return Astro.redirect(
+    loginRedirect(`/admin/edit-article?folder=${encodeURIComponent(folder)}`)
+  );
+}
+if (!(await isValidFolder(folder))) {
+  return Astro.redirect("/admin");
+}
+
+const versions: Partial<Record<Lang, ArticleVersion>> = {};
+for (const lang of LANGUAGES) {
+  const version = await readArticleVersion(folder, lang);
+  if (version) versions[lang] = version;
+}
+const base = versions.fr ?? versions.en;
+if (!base) {
+  return Astro.redirect("/admin");
+}
+---
+
+<ArticleForm
+  mode="edit"
+  folder={folder}
+  date={base.date}
+  slug={base.slug}
+  cover={base.cover}
+  versions={versions}
+/>

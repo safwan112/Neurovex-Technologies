@@ -29,6 +29,14 @@ export const getYoutubeThumbnail = (youtubeUrl?: string) => {
 
 // Blog utils
 
+// "5 min de lecture" / "5 min read", Medium style: 200 words per minute,
+// at least 1 minute.
+export const getReadingTimeLabel = (body: string | undefined, lang: string) => {
+  const words = (body ?? "").trim().split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.round(words / 200));
+  return lang === "en" ? `${minutes} min read` : `${minutes} min de lecture`;
+};
+
 export const getPageNumbers = (numberOfPosts: number) => {
   const numberOfPages = numberOfPosts / Number(SITE.postPerPage);
 
